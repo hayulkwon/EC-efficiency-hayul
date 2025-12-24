@@ -223,7 +223,8 @@ with tab3:
             df.to_excel(buffer, index=False, engine="openpyxl")
             buffer.seek(0)
             st.download_button(
-                data=buffer,
+                label=f"{school} 생육 데이터 다운로드",
+                data=buffer.getvalue(),  # <-- 수정된 부분
                 file_name=f"{school}_생육결과.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
