@@ -167,19 +167,30 @@ with tab2:
 with tab3:
     st.header("📊 생육 결과 분석")
 
-    # EC별 평균 생중량
+    # EC별 평균 생중량 계산
     ec_summary = pd.DataFrame()
     for school, df in growth_data_dict.items():
+        # 숫자형 변환
+        df_weight = pd.to_numeric(df["생중량(g)"], errors="coerce")
+        df_leaf = pd.to_numeric(df["잎 수(장)"], errors="coerce")
+        df_shoot = pd.to_numeric(df["지상부 길이(mm)"], errors="coerce")
+
         ec_summary = pd.concat([ec_summary,
                                 pd.DataFrame({
                                     "학교": school,
                                     "EC": [ec_dict.get(school)],
-                                    "평균 생중량": [df["생중량(g)"].mean()],
-                                    "평균 잎 수": [df["잎 수(장)"].mean()],
-                                    "평균 지상부 길이": [df["지상부 길이(mm)"].mean()],
+                                    "평균 생중량": [df_weight.mean(skipna=True)],
+                                    "평균 잎 수": [df_leaf.mean(skipna=True)],
+                                    "평균 지상부 길이": [df_shoot.mean(skipna=True)],
                                     "개체수": [len(df)]
-                                })])
-    st.metric("⭐ 최적 EC 생중량", ec_summary.loc[ec_summary["평균 생중량"].idxmax(), "평균 생중량"])
+                                })], ignore_index=True)
+
+    # 최적 EC 생중량 안전하게 표시
+    if not ec_summary.empty and ec_summary["평균 생중량"].notna().any():
+        max_weight = ec_summary.loc[ec_summary["평균 생중량"].idxmax(), "평균 생중량"]
+        st.metric("⭐ 최적 EC 생중량", round(float(max_weight), 2))
+    else:
+        st.metric("⭐ 최적 EC 생중량", "데이터 없음")
 
     # EC별 생육 비교 2x2 막대
     fig_growth = make_subplots(rows=2, cols=2, subplot_titles=("평균 생중량", "평균 잎 수", "평균 지상부 길이", "개체수"))
